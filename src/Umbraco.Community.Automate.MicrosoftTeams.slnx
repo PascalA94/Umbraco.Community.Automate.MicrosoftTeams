@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Umbraco.Community.Automate.MicrosoftTeams/Umbraco.Community.Automate.MicrosoftTeams.csproj" />
+  <Project Path="Umbraco.Community.Automate.MicrosoftTeams.Mock/Umbraco.Community.Automate.MicrosoftTeams.Mock.csproj" />
+  <Project Path="Umbraco.Community.Automate.MicrosoftTeams.Tests/Umbraco.Community.Automate.MicrosoftTeams.Tests.csproj" />
+  <Project Path="Umbraco.Community.Automate.MicrosoftTeams.IntegrationTests/Umbraco.Community.Automate.MicrosoftTeams.IntegrationTests.csproj" />
+  <Project Path="../demo/Umbraco.Community.Automate.MicrosoftTeams.DemoSite/Umbraco.Community.Automate.MicrosoftTeams.DemoSite.csproj" />
+</Solution>

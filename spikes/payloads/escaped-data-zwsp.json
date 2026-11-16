@@ -1,0 +1,48 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Rock \"n\" Roll - 1.0",
+            "wrap": true
+          },
+          {
+            "type": "TextBlock",
+            "text": "[\u200bx](https://e.example)",
+            "wrap": true
+          },
+          {
+            "type": "TextBlock",
+            "text": "*\u200ba*\u200b",
+            "wrap": true
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "row0",
+                "value": "Rock \"n\" Roll - 1.0"
+              },
+              {
+                "title": "row1",
+                "value": "[\u200bx](https://e.example)"
+              },
+              {
+                "title": "row2",
+                "value": "*\u200ba*\u200b"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

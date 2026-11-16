@@ -1,0 +1,39 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Approval needed: {{title}}",
+      "wrap": true,
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Editor",
+          "value": "{{editor}}"
+        },
+        {
+          "title": "Requested",
+          "value": "{{requestedAt}}"
+        }
+      ]
+    },
+    {
+      "type": "TextBlock",
+      "text": "{{notes}}",
+      "wrap": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Open in backoffice",
+      "url": "{{url}}"
+    }
+  ]
+}

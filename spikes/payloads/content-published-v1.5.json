@@ -1,0 +1,50 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Now live: Spring campaign",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder"
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Content type",
+                "value": "Landing page"
+              },
+              {
+                "title": "Editor",
+                "value": "A. Editor"
+              },
+              {
+                "title": "Published",
+                "value": "2026-11-16 09:00"
+              }
+            ]
+          },
+          {
+            "type": "ActionSet",
+            "actions": [
+              {
+                "type": "Action.OpenUrl",
+                "title": "View page",
+                "url": "https://www.example.com/spring"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

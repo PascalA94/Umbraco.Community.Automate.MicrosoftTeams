@@ -1,0 +1,34 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Launch day\\_1",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder"
+          },
+          {
+            "type": "TextBlock",
+            "text": "The \\*new\\* site is live.",
+            "wrap": true
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.OpenUrl",
+            "title": "Read the post",
+            "url": "https://www.example.com/news/launch"
+          }
+        ]
+      }
+    }
+  ]
+}

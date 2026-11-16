@@ -1,0 +1,54 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.3",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Approval needed: Spring campaign",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder"
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Editor",
+                "value": "A. Editor"
+              },
+              {
+                "title": "Requested",
+                "value": "2026-11-16 08:30"
+              }
+            ]
+          },
+          {
+            "type": "TextBlock",
+            "text": "Please check the hero copy.",
+            "wrap": true
+          },
+          {
+            "type": "ActionSet",
+            "actions": [
+              {
+                "type": "Action.OpenUrl",
+                "title": "Open in backoffice",
+                "url": "https://www.example.com/spring"
+              }
+            ]
+          }
+        ],
+        "msteams": {
+          "width": "Full"
+        }
+      }
+    }
+  ]
+}

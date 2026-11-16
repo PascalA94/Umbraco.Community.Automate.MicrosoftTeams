@@ -1,0 +1,41 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.5",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Spring campaign",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder"
+          },
+          {
+            "type": "TextBlock",
+            "text": "Sample body text.",
+            "wrap": true
+          },
+          {
+            "type": "ActionSet",
+            "actions": [
+              {
+                "type": "Action.OpenUrl",
+                "title": "Open the page",
+                "url": "https://www.example.com/spring"
+              }
+            ]
+          }
+        ],
+        "msteams": {
+          "width": "Full"
+        }
+      }
+    }
+  ]
+}

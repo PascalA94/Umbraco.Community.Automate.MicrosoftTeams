@@ -1,0 +1,67 @@
+<Project>
+  <!--
+    One codebase, two Umbraco lines. AutomateMajor selects the line: 18 (default) or 17. The name follows the Jira
+    connector's convention, so the credential-helper CI and scripts read the same in both repos.
+      dotnet build -p:AutomateMajor=17
+    It sets the CMS and Automate ranges, the package version, the AUTOMATE_17 / AUTOMATE_18 constants, and a separate lock
+    file and obj folder per line, so switching lines never reuses the other line's restore.
+    AutomateFloat=true (latest CI leg only) floats the CMS and Automate references to <line>.* : NuGet resolves a closed
+    range to its lowest version, so without it a new Automate release would never reach the credential isolation suite.
+
+    Lock files describe the floor: they are generated and committed at the default values of UmbracoTestVersion and
+    UmbracoDemoVersion (the line's floor), and the floor CI legs restore in locked mode. The latest-minor CI legs override
+    these two properties (17.* or 18.*) and restore unlocked (force-evaluate, RestoreLockedMode=false); the lock files
+    they rewrite are never committed. Nothing else overrides these properties.
+
+    Floors never go below 17.8.0 / 18.3.0: they sit above the 27 Oct 2026 advisories. Lowering one needs a security
+    review first.
+  -->
+  <PropertyGroup>
+    <AutomateMajor Condition="'$(AutomateMajor)' == ''">18</AutomateMajor>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(AutomateMajor)' == '17'">
+    <UmbracoFloor>17.8.0</UmbracoFloor>
+    <NextMajor>18.0.0</NextMajor>
+    <DefineConstants>$(DefineConstants);AUTOMATE_17</DefineConstants>
+    <AutomateFloor>17.5.1</AutomateFloor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AutomateMajor)' == '18'">
+    <UmbracoFloor>18.3.0</UmbracoFloor>
+    <NextMajor>19.0.0</NextMajor>
+    <DefineConstants>$(DefineConstants);AUTOMATE_18</DefineConstants>
+    <AutomateFloor>18.5.1</AutomateFloor>
+  </PropertyGroup>
+  <Target Name="ValidateAutomateMajor" BeforeTargets="Restore;Build;CoreCompile" Condition="'$(AutomateMajor)' != '17' and '$(AutomateMajor)' != '18'">
+    <Error Text="AutomateMajor must be 17 or 18 (got '$(AutomateMajor)')." />
+  </Target>
+
+  <PropertyGroup>
+    <!-- 17.x and 18.x ship from one tag release/<PackageMinor>.<PackagePatch>[-suffix]; the major comes from the line.
+         An empty suffix is a stable release (17.0.0 and 18.0.0); set it to alpha.1 for a prerelease. While eng/live-gate-open exists the suffix must be beta.N (build/check-live-gate.sh). -->
+    <PackageMinor>0</PackageMinor>
+    <PackagePatch>0</PackagePatch>
+    <PackageVersionSuffix>beta.1</PackageVersionSuffix>
+    <UmbracoRange>[$(UmbracoFloor), $(NextMajor))</UmbracoRange>
+    <AutomateRange>[$(AutomateFloor), $(NextMajor))</AutomateRange>
+    <AutomateFloat Condition="'$(AutomateFloat)' == ''">false</AutomateFloat>
+    <UmbracoTestVersion Condition="'$(UmbracoTestVersion)' == ''">$(UmbracoFloor)</UmbracoTestVersion>
+    <UmbracoDemoVersion Condition="'$(UmbracoDemoVersion)' == ''">$(UmbracoFloor)</UmbracoDemoVersion>
+
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <NuGetLockFilePath>$(MSBuildProjectDirectory)/packages.$(AutomateMajor).lock.json</NuGetLockFilePath>
+    <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj/$(AutomateMajor)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildProjectDirectory)/bin/$(AutomateMajor)/</BaseOutputPath>
+    <!-- Per-line obj/bin folders: without this the other line's generated .cs files are globbed in (CS0579). -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj/**;bin/**</DefaultItemExcludes>
+    <!-- Audit direct and transitive dependencies; build/check-vulnerable.sh is the PR and release gate. -->
+    <NuGetAuditMode>all</NuGetAuditMode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(AutomateFloat)' == 'true'">
+    <UmbracoRange>$(AutomateMajor).*</UmbracoRange>
+    <AutomateRange>$(AutomateMajor).*</AutomateRange>
+    <!-- A floating restore cannot be locked: write to a separate git-ignored file so a local run never dirties the committed locks. -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <NuGetLockFilePath>$(MSBuildProjectDirectory)/packages.$(AutomateMajor).float.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+</Project>

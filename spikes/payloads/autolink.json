@@ -1,0 +1,57 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "https://e.example/login",
+            "wrap": true
+          },
+          {
+            "type": "TextBlock",
+            "text": "www.e.example",
+            "wrap": true
+          },
+          {
+            "type": "TextBlock",
+            "text": "user@e.example",
+            "wrap": true
+          },
+          {
+            "type": "TextBlock",
+            "text": "mailto:user@e.example",
+            "wrap": true
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "row0",
+                "value": "https://e.example/login"
+              },
+              {
+                "title": "row1",
+                "value": "www.e.example"
+              },
+              {
+                "title": "row2",
+                "value": "user@e.example"
+              },
+              {
+                "title": "row3",
+                "value": "mailto:user@e.example"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

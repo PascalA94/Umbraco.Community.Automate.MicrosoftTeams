@@ -1,0 +1,23 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageFloatingVersionsEnabled>true</CentralPackageFloatingVersionsEnabled>
+    <!--
+      Default must match UmbracoAppLocalIcuVersion in Umbraco.Community.Automate.MicrosoftTeams.DemoSite.csproj. Defined here too because this file
+      is imported before the main project's own PropertyGroup runs, so under CPM the PackageVersion below needs
+      its own fallback to stay in sync with the RuntimeHostConfigurationOption value set from the same property.
+    -->
+    <UmbracoAppLocalIcuVersion Condition="'$(UmbracoAppLocalIcuVersion)' == ''">72.1.0.3</UmbracoAppLocalIcuVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Umbraco.Cms" Version="$(UmbracoDemoVersion)" />
+    <!-- The host the package runs in: same line and floor as the package, floated on the latest CI leg. -->
+    <PackageVersion Include="Umbraco.Automate" Version="$(AutomateRange)" />
+    <PackageVersion Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="$(UmbracoDemoVersion)" />
+    <PackageVersion Include="Microsoft.ICU.ICU4C.Runtime" Version="$(UmbracoAppLocalIcuVersion)" />
+    <!-- Transitive advisory pins, same as eng/transitive-pins.props -->
+    <PackageVersion Include="MessagePack" Version="3.1.11" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+    <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.13" />
+  </ItemGroup>
+</Project>

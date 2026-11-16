@@ -1,0 +1,111 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Umbraco.Community.Automate.MicrosoftTeams</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Umbraco.Community.Automate.MicrosoftTeams</PackageId>
+    <!-- MSBuild adds the hyphen only when the suffix is non-empty, so a stable release (empty suffix) is a valid version. -->
+    <VersionPrefix>$(AutomateMajor).$(PackageMinor).$(PackagePatch)</VersionPrefix>
+    <VersionSuffix>$(PackageVersionSuffix)</VersionSuffix>
+    <Authors>Pascal Meyer</Authors>
+    <Description>Post messages and Adaptive Cards to Microsoft Teams from Umbraco Automate, through a Workflows webhook. Not yet verified against live Teams.</Description>
+    <Copyright>Copyright © Pascal Meyer</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/PascalA94/Umbraco.Community.Automate.MicrosoftTeams</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/PascalA94/Umbraco.Community.Automate.MicrosoftTeams</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>umbraco;umbraco-marketplace;umbracopackage;umbraco-automate;automate;teams;microsoft-teams</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <!-- Debugging support: Source Link plus a .snupkg symbol package -->
+  <PropertyGroup>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+  </PropertyGroup>
+
+  <!-- Deterministic, path-normalised builds in CI so published binaries are reproducible -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Floors: above the 27 Oct 2026 advisories. Never lower them without a security review. -->
+    <!-- Present only to enforce the portfolio CMS floor (design section 4); the package uses no other CMS API. -->
+    <PackageReference Include="Umbraco.Cms.Core" Version="$(UmbracoRange)" />
+    <!-- Automate packages are version-locked per major, so the range follows the Umbraco line. -->
+    <PackageReference Include="Umbraco.Automate.Core" Version="$(AutomateRange)" />
+    <!-- Umbraco.Automate.Core pulls WorkflowCore, which pulls OpenTelemetry.Api 1.1.0 (GHSA-g94r-2vxg-569j, fixed in 1.15.3).
+         build/check-vulnerable.sh and osv-scanner would fail every PR on it. This direct reference lifts the resolved version
+         in every project that references this one. Remove it when Automate.Core's own dependency is fixed. -->
+    <PackageReference Include="OpenTelemetry.Api" Version="1.15.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The built-in cards are data files, so a change found at the Live gate is an edit, not code. -->
+    <EmbeddedResource Include="Cards\Templates\*.json" LogicalName="Umbraco.Community.Automate.MicrosoftTeams.Cards.Templates.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Build-time only: generates the appsettings schema. Version 0.4.3 is the one Jira's connector uses. -->
+    <PackageReference Include="Umbraco.JsonSchema.Extensions" Version="0.4.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Ship buildTransitive props so a consuming site's CopyUmbracoJsonSchemaFiles target (from Umbraco.Cms.Targets)
+       discovers the schema and copies it into the project. -->
+  <ItemGroup>
+    <Content Include="buildTransitive\**" PackagePath="buildTransitive" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <_TeamsJsonSchemaReference>appsettings-schema.Umbraco.Community.Automate.MicrosoftTeams.json</_TeamsJsonSchemaReference>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="$(_TeamsJsonSchemaReference)" PackagePath="" Visible="false" />
+    <Clean Include="$(_TeamsJsonSchemaReference)" />
+  </ItemGroup>
+
+  <!-- Generate the appsettings JSON schema on build, and before consumers copy it. -->
+  <Target Name="GenerateAppsettingsSchema" BeforeTargets="Build;CopyUmbracoJsonSchemaFiles" Inputs="$(TargetPath)" Outputs="$(_TeamsJsonSchemaReference)">
+    <Message Text="Generating $(_TeamsJsonSchemaReference)" Importance="high" />
+    <JsonSchemaGenerate AssemblyPath="$(TargetPath)" TypeName="UmbracoCommunityAutomateTeamsSchema" OutputPath="$(_TeamsJsonSchemaReference)" IncludeObsoleteProperties="false" />
+    <ItemGroup>
+      <FileWrites Include="$(_TeamsJsonSchemaReference)" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Lets a test (and a support question) confirm which line a binary was built for. -->
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AutomateMajor</_Parameter1>
+      <_Parameter2>$(AutomateMajor)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Umbraco.Community.Automate.MicrosoftTeams.Tests" />
+    <InternalsVisibleTo Include="Umbraco.Community.Automate.MicrosoftTeams.IntegrationTests" />
+    <InternalsVisibleTo Include="Umbraco.Community.Automate.MicrosoftTeams.Mock" />
+    <!-- NSubstitute proxies for internal types -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\eng\transitive-pins.props" />
+
+</Project>

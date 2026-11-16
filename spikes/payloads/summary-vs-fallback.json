@@ -1,0 +1,23 @@
+{
+  "type": "message",
+  "summary": "SUMMARY-TEXT-shown-in-preview?",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "contentUrl": null,
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "fallbackText": "FALLBACKTEXT-shown-in-preview?",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Which text drives the notification preview?",
+            "wrap": true
+          }
+        ]
+      }
+    }
+  ]
+}

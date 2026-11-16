@@ -1,0 +1,31 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Microsoft Teams",
+  "Description": "Beta: not yet verified against live Teams. It is tested against fake responses modelled on the documentation, not a real tenant.\n\nPost messages and Adaptive Cards to Microsoft Teams from Umbraco Automate. Uses Teams **Workflows** webhooks. Office 365 connectors were retired in May 2026.",
+  "Category": "Automation",
+  "PackageType": "Package",
+  "LicenseTypes": [
+    "Free"
+  ],
+  "DocumentationUrl": "https://github.com/PascalA94/Umbraco.Community.Automate.MicrosoftTeams#readme",
+  "IssueTrackerUrl": "https://github.com/PascalA94/Umbraco.Community.Automate.MicrosoftTeams/issues",
+  "LookingForContributors": true,
+  "AuthorDetails": {
+    "Name": "Pascal Meyer",
+    "Url": "https://github.com/PascalA94",
+    "ImageUrl": "https://github.com/PascalA94.png"
+  },
+  "Screenshots": [],
+  "Tags": [
+    "automate",
+    "teams",
+    "microsoft"
+  ],
+  "ReadmeUrl": "https://raw.githubusercontent.com/PascalA94/Umbraco.Community.Automate.MicrosoftTeams/main/umbraco-marketplace-readme.md",
+  "RelatedPackages": [
+    {
+      "PackageId": "Umbraco.Automate",
+      "Description": "Core automation system for Umbraco CMS"
+    }
+  ]
+}

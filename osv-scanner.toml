@@ -1,0 +1,22 @@
+# osv-scanner only recognises a NuGet lock file named packages.lock.json. This repo's lock files are
+# packages.17.lock.json and packages.18.lock.json, so a plain --recursive walk never reads them: build.yml passes each
+# one explicitly with -L packages.lock.json:<path>. The same walk reads each csproj, where the version is the literal
+# text $(UmbracoRange) and not a resolved version, which is what produces the two entries below.
+# Pass this file with --config=./osv-scanner.toml (build.yml does).
+#
+# Add an entry only after checking the advisory really does not affect the floor (query OSV for the floor version),
+# and always give the reason and an expiry. Never ignore an advisory that lists a version at or above the floor as affected.
+[[IgnoredVulns]]
+id = "GHSA-6ffg-mjg7-585x"
+ignoreUntil = 2027-06-30
+reason = "Affects Umbraco.Cms.Api.Management < 14.3.3 and 15.0.0-rc1 to 15.2.3 only; the package floors (17.8.0 and 18.3.0) are above 15.2.3."
+
+[[IgnoredVulns]]
+id = "GHSA-jrmq-rv9w-63rv"
+ignoreUntil = 2027-06-30
+reason = "False positive from the csproj text $(UmbracoRange). Fixed in Umbraco.Cms.Core 9.2.0, far below the 17.8.0 and 18.3.0 floors. The resolved versions in the lock files are scanned separately."
+
+[[IgnoredVulns]]
+id = "GHSA-r8pr-83cc-ccv7"
+ignoreUntil = 2027-06-30
+reason = "False positive from the csproj text $(UmbracoRange). Fixed in Umbraco.Cms.Core 9.2.0, far below the 17.8.0 and 18.3.0 floors. The resolved versions in the lock files are scanned separately."

@@ -1,0 +1,34 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "New entry: {{formName}}",
+      "wrap": true,
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Entry",
+          "value": "{{entryId}}"
+        },
+        {
+          "title": "Submitted",
+          "value": "{{submittedAt}}"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "View entry",
+      "url": "{{url}}"
+    }
+  ]
+}

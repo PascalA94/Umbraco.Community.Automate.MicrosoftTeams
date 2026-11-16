@@ -1,0 +1,38 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.4",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "Now live: {{title}}",
+      "wrap": true,
+      "size": "Large",
+      "weight": "Bolder"
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Content type",
+          "value": "{{contentType}}"
+        },
+        {
+          "title": "Editor",
+          "value": "{{editor}}"
+        },
+        {
+          "title": "Published",
+          "value": "{{publishedAt}}"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "View page",
+      "url": "{{url}}"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "type": "message",
+  "attachments": [
+    {
+      "contentType": "application/vnd.microsoft.card.adaptive",
+      "content": {
+        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+        "type": "AdaptiveCard",
+        "version": "1.4",
+        "body": [
+          {
+            "type": "TextBlock",
+            "text": "Approval needed: Launch day\\_1",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder"
+          },
+          {
+            "type": "FactSet",
+            "facts": [
+              {
+                "title": "Editor",
+                "value": "editor value"
+              },
+              {
+                "title": "Requested",
+                "value": "requestedAt value"
+              }
+            ]
+          },
+          {
+            "type": "TextBlock",
+            "text": "notes value",
+            "wrap": true
+          }
+        ],
+        "actions": [
+          {
+            "type": "Action.OpenUrl",
+            "title": "Open in backoffice",
+            "url": "https://www.example.com/news/launch"
+          }
+        ]
+      }
+    }
+  ]
+}

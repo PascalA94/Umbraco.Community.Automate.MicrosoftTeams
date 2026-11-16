@@ -1,0 +1,21 @@
+{
+  "_comment": "Changing this file breaks saved automations. Aliases, settings property names and enum members are permanent once released.",
+  "connectionTypes": {
+    "community.teams.workflowWebhook": { "settings": ["CredentialName", "DefaultCardVersion"] }
+  },
+  "actions": {
+    "community.teams.postMessage": {
+      "connectionTypeAlias": "community.teams.workflowWebhook",
+      "settings": ["Title", "Message", "Data", "LinkUrl", "LinkLabel", "Style", "Formatting", "AllowExternalLinks"]
+    },
+    "community.teams.postCard": {
+      "connectionTypeAlias": "community.teams.workflowWebhook",
+      "settings": ["CardSource", "CustomCardJson", "CardData", "Summary", "EscapeMarkdownInData", "AllowExternalLinks"]
+    }
+  },
+  "enums": {
+    "MessageFormatting": ["PlainText", "Markdown"],
+    "MessageStyle": ["Default", "Good", "Warning", "Attention"],
+    "CardSource": ["ContentPublished", "ApprovalNeeded", "FormSubmitted", "Simple", "Custom"]
+  }
+}

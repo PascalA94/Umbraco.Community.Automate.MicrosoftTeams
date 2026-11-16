@@ -1,0 +1,178 @@
+name: Build and Test
+
+# Fast PR checks only (about 5 minutes): build and SQLite tests at the floor and at the latest minor, client build and
+# wwwroot drift, gitleaks, osv-scanner and check-vulnerable. Both Umbraco lines (17 and 18) build from this one branch,
+# selected by -p:AutomateMajor. Never add e2e or SQL Server here: they live in
+# release-checks.yml, which is run by hand.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # Weekly: a new Automate release that widens its config allow-list fails the credential isolation suite without a PR.
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  SLN: src/Umbraco.Community.Automate.MicrosoftTeams.slnx
+
+jobs:
+  build:
+    name: build (${{ matrix.line }} ${{ matrix.leg }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        line: ['17', '18']
+        # floor: locked restore at the committed packages.<line>.lock.json (UmbracoTestVersion / UmbracoDemoVersion defaults).
+        # latest: newest <line>.x, restored unlocked; the lock files it rewrites are never committed.
+        leg: [floor, latest]
+    # MSBuild reads environment variables as properties: AutomateMajor picks the line, and the latest leg floats the test and
+    # demo Umbraco versions. Empty values fall through to Directory.Build.props defaults (the floor).
+    env:
+      AutomateMajor: ${{ matrix.line }}
+      UmbracoTestVersion: ${{ matrix.leg == 'latest' && format('{0}.*', matrix.line) || '' }}
+      UmbracoDemoVersion: ${{ matrix.leg == 'latest' && format('{0}.*', matrix.line) || '' }}
+      # Floats Umbraco.Automate.Core and Umbraco.Cms.Core too, so a new Automate release reaches the credential isolation suite.
+      AutomateFloat: ${{ matrix.leg == 'latest' && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.x'
+          # NuGet cache keyed on the lock files. Not used in publish.yml, so a release never restores from a PR-filled cache.
+          cache: true
+          cache-dependency-path: '**/packages.*.lock.json'
+
+      - name: Restore (locked)
+        if: matrix.leg == 'floor'
+        run: dotnet restore "$SLN" --locked-mode
+
+      - name: Lock files unchanged
+        if: matrix.leg == 'floor'
+        run: git diff --exit-code -- '**/packages.*.lock.json'
+
+      - name: Restore (latest minor, unlocked)
+        if: matrix.leg == 'latest'
+        run: dotnet restore "$SLN" --force-evaluate -p:RestoreLockedMode=false
+
+      - name: Build
+        run: dotnet build "$SLN" -c Release --no-restore
+
+      # Unit and integration tests (SQLite). SQL Server and e2e run in release-checks.yml.
+      - name: Test
+        run: dotnet test "$SLN" -c Release --no-build --logger "trx;LogFileName=results.trx"
+
+      # The packed README is the reviewed one, no demo or seed file ships, and the package builds with the schema.
+      - name: Packed README (floor)
+        if: matrix.leg == 'floor'
+        run: |
+          dotnet pack src/Umbraco.Community.Automate.MicrosoftTeams/Umbraco.Community.Automate.MicrosoftTeams.csproj -c Release --no-build -o "$RUNNER_TEMP/pkg"
+          for pkg in "$RUNNER_TEMP"/pkg/*.nupkg; do bash build/check-packed-readme.sh "$pkg"; done
+
+      - name: Upload test results
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: test-results-${{ matrix.line }}-${{ matrix.leg }}
+          path: '**/results.trx'
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      # Scans every commit in the PR range: put `// gitleaks:allow` on fake test secrets in the commit that adds them.
+      - name: gitleaks
+        run: bash build/gitleaks.sh "${{ github.event.pull_request.base.sha || github.event.before }}..${{ github.sha }}"
+
+  # osv-scanner only recognises a lock file named packages.lock.json, so the per-line files are passed with -L (a
+  # --recursive walk alone would never read them and would see only the csproj ranges).
+  osv:
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@b1d267aea5211fa648d9d442fa64b90dbdcbdd36 # v2.7.0
+    with:
+      fail-on-vuln: true
+      upload-sarif: false
+      scan-args: |-
+        --config=./osv-scanner.toml
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams.IntegrationTests/packages.17.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams.IntegrationTests/packages.18.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams.Mock/packages.17.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams.Mock/packages.18.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams.Tests/packages.17.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams.Tests/packages.18.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams/packages.17.lock.json
+        -L packages.lock.json:src/Umbraco.Community.Automate.MicrosoftTeams/packages.18.lock.json
+        --recursive
+        ./
+
+  deps:
+    name: deps (${{ matrix.line }})
+    needs: osv
+    runs-on: ubuntu-latest
+    env:
+      AutomateMajor: ${{ matrix.line }}
+    strategy:
+      fail-fast: false
+      matrix:
+        line: ['17', '18']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup .NET
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.x'
+          # NuGet cache keyed on the lock files. Not used in publish.yml, so a release never restores from a PR-filled cache.
+          cache: true
+          cache-dependency-path: '**/packages.*.lock.json'
+      - name: Restore (locked)
+        run: dotnet restore "$SLN" --locked-mode
+      - name: Vulnerable packages (direct and transitive)
+        run: bash build/check-vulnerable.sh "$SLN"
+
+  docs-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - run: bash build/docs-guard.sh
+
+  credential-helper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Contract section 4 items 12 and 13: the copy matches the Jira tag and carries the frozen hash.
+      - run: bash build/check-credential-helper.sh
+
+  scheduled-failure-issue:
+    needs: [build, secrets, osv, deps, docs-guard, credential-helper]
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open an issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Scheduled CI failed - check the newest Automate release and the allow-list" \
+            --body "$RUN_URL"

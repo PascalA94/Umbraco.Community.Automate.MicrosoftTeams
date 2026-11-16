@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.Testing" Version="10.11.0" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
+    <PackageReference Include="JsonSchema.Net" Version="7.4.0" />
+    <PackageReference Include="NSubstitute" Version="6.2.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Umbraco.Automate.Testing" Version="$(AutomateRange)" />
+    <!-- Credential isolation suite only (contract section 5.2, I06 and I07): Automate's real registration entry point lives
+         in Startup, and the configuration-consumer scan must see every assembly a site loads. -->
+    <PackageReference Include="Umbraco.Automate.Persistence" Version="$(AutomateRange)" />
+    <PackageReference Include="Umbraco.Automate.Startup" Version="$(AutomateRange)" />
+    <PackageReference Include="Umbraco.Automate.Web" Version="$(AutomateRange)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Umbraco.Community.Automate.MicrosoftTeams\Umbraco.Community.Automate.MicrosoftTeams.csproj" />
+    <ProjectReference Include="..\Umbraco.Community.Automate.MicrosoftTeams.Mock\Umbraco.Community.Automate.MicrosoftTeams.Mock.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Contract section 4 item 6: C17 and C18 hash and version-check the store and both verbatim suites. -->
+    <EmbeddedResource Include="..\Umbraco.Community.Automate.MicrosoftTeams\CredentialHelper\TeamsCredentialStore.cs" LogicalName="CredentialHelperContract.StoreSource.cs" />
+    <EmbeddedResource Include="CredentialHelperContract\CredentialHelperStoreContractTests.cs" LogicalName="CredentialHelperContract.StoreContractTests.cs" />
+    <EmbeddedResource Include="CredentialHelperContract\CredentialIsolationContractTests.cs" LogicalName="CredentialHelperContract.IsolationContractTests.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Contract\frozen-contract.json" LogicalName="frozen-contract.json" />
+    <EmbeddedResource Include="Contract\adaptive-card-1.5.schema.json" LogicalName="adaptive-card-1.5.schema.json" />
+    <EmbeddedResource Include="Contract\adaptive-card-1.4.schema.json" LogicalName="adaptive-card-1.4.schema.json" />
+    <EmbeddedResource Include="Contract\Snapshots\*.json" LogicalName="Snapshots.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)..\..\eng\transitive-pins.props" />
+
+</Project>
