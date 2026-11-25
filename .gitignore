@@ -47,3 +47,6 @@ umbraco-package-schema.json
 # Internal working notes (kept on disk, never tracked)
 COMMITS-TODO.md
 HANDOVER.md
+
+# Local pack output from CONTRIBUTING.md
+local-nuget/

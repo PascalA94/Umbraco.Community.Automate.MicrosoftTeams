@@ -34,8 +34,8 @@ dotnet run --project demo/Umbraco.Community.Automate.MicrosoftTeams.DemoSite   #
 Pack with a unique version each time, because NuGet's global cache keeps serving the first build of any version number:
 
 ```bash
-dotnet pack src/Umbraco.Community.Automate.MicrosoftTeams -c Release -o ~/local-nuget -p:Version=18.0.0-local.$(date +%s)
-dotnet nuget add source ~/local-nuget --name local   # once
+dotnet pack src/Umbraco.Community.Automate.MicrosoftTeams -c Release -o ./local-nuget -p:Version=18.0.0-local.$(date +%s)
+dotnet nuget add source ./local-nuget --name local   # once
 dotnet add package Umbraco.Community.Automate.MicrosoftTeams --version 18.0.0-local.<timestamp>
 ```
 
