@@ -234,8 +234,31 @@ public class TeamsWebhookSenderTests
     {
         var body = new CountingStream(50L * 1024 * 1024);
         var rig = new SenderRig(handler: new RecordingHandler { Status = HttpStatusCode.BadRequest, BodyStream = body });
-        var r = await rig.Post();
-        Assert.Equal(StepRunErrorCategory.InvalidResponse, r.Failure!.Category);
+
+        // Intermittent on CI (ServiceUnavailable instead of InvalidResponse, seen twice on 2026-11-25, never locally).
+        // The sender's catch-all hides the exception on purpose, so record the first one thrown while this sender runs:
+        // type and top frames only, never the message. Remove once the cause is found and fixed.
+        string? firstThrown = null;
+        void Capture(object? sender, System.Runtime.ExceptionServices.FirstChanceExceptionEventArgs e)
+        {
+            if (firstThrown is null && Environment.StackTrace.Contains(nameof(TeamsWebhookSender), StringComparison.Ordinal))
+            {
+                firstThrown = e.Exception.GetType().FullName + " at " + string.Join(" | ", (e.Exception.StackTrace ?? string.Empty).Split('\n').Take(3).Select(l => l.Trim()));
+            }
+        }
+
+        AppDomain.CurrentDomain.FirstChanceException += Capture;
+        TeamsPostResult r;
+        try
+        {
+            r = await rig.Post();
+        }
+        finally
+        {
+            AppDomain.CurrentDomain.FirstChanceException -= Capture;
+        }
+
+        Assert.True(r.Failure!.Category == StepRunErrorCategory.InvalidResponse, $"category {r.Failure.Category}; first exception in the sender: {firstThrown ?? "none seen"}");
         Assert.True(body.BytesRead <= 1024, $"read {body.BytesRead}");
     }
 
