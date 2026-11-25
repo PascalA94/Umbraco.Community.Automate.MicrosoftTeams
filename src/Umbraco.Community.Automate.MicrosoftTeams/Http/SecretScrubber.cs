@@ -6,6 +6,9 @@ namespace Umbraco.Community.Automate.MicrosoftTeams.Http;
 /// <summary>Makes text from Teams safe to show in a step failure: no control or bidi characters, no URLs, no signatures, short.</summary>
 internal static partial class SecretScrubber
 {
+    /// <summary>Shown when a body cannot be scrubbed in time, so nothing unscrubbed is ever returned.</summary>
+    public const string UnreadableBodyText = "Teams' error details were withheld because they could not be checked for secrets in time.";
+
     public static string Scrub(string? text, int maxLength = 200, IEnumerable<string>? hostPatterns = null, string? knownHost = null)
     {
         if (string.IsNullOrEmpty(text))
@@ -13,21 +16,32 @@ internal static partial class SecretScrubber
             return string.Empty;
         }
 
-        // Strip first so a control character cannot split a URL or "sig=" and slip past the redaction.
-        var redacted = Url().Replace(ValueLimiter.StripControlAndBidi(text), "[redacted]");
-        redacted = Sig().Replace(redacted, "[redacted]");
-        var patterns = hostPatterns?.ToList() ?? [];
-        if (patterns.Count > 0 || !string.IsNullOrWhiteSpace(knownHost))
+        string redacted;
+        try
         {
-            // A body can echo the host and path without the scheme, so a URL match alone misses it.
-            redacted = HostLike().Replace(redacted, m =>
+            // Strip first so a control character cannot split a URL or "sig=" and slip past the redaction.
+            redacted = Url().Replace(ValueLimiter.StripControlAndBidi(text), "[redacted]");
+            redacted = Sig().Replace(redacted, "[redacted]");
+            var patterns = hostPatterns?.ToList() ?? [];
+            if (patterns.Count > 0 || !string.IsNullOrWhiteSpace(knownHost))
             {
-                var host = m.Groups["host"].Value;
-                return (!string.IsNullOrWhiteSpace(knownHost) && HostNames.Normalise(host) == HostNames.Normalise(knownHost))
-                    || HostNames.Matches(host, patterns)
-                    ? "[redacted]"
-                    : m.Value;
-            });
+                // A body can echo the host and path without the scheme, so a URL match alone misses it.
+                redacted = HostLike().Replace(redacted, m =>
+                {
+                    var host = m.Groups["host"].Value;
+                    return (!string.IsNullOrWhiteSpace(knownHost) && HostNames.Normalise(host) == HostNames.Normalise(knownHost))
+                        || HostNames.Matches(host, patterns)
+                        ? "[redacted]"
+                        : m.Value;
+                });
+            }
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            // A long run of letters makes the host pattern backtrack until its match timeout. Fail closed with fixed text:
+            // returning the unscrubbed body could leak, and letting the exception out would turn a Teams answer into
+            // a connection failure.
+            return UnreadableBodyText;
         }
 
         if (redacted.Length > maxLength)

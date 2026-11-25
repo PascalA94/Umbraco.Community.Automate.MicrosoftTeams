@@ -69,4 +69,15 @@ public class SecretScrubberTests
         Assert.DoesNotContain("hook.example.org", s);
         Assert.DoesNotContain("SECRETPATH", s);
     }
+
+    // The host regex backtracks quadratically on a long run of letters and has a 250 ms match timeout. A slow CI runner
+    // probably reached it on a 1 KB error body, and the sender's catch-all then reported ServiceUnavailable instead of
+    // the real category. 200,000 characters are far over the limit on any machine, so this tests the catch itself.
+    // If a future regex engine scans this input in linear time, raise the length or give the scrubber a timeout seam.
+    [Fact]
+    public void Scrub_RegexTimesOut_ReturnsFixedTextInsteadOfThrowing()
+    {
+        var s = SecretScrubber.Scrub(new string('x', 200_000), 200, ["*.powerplatform.com"], "hook.example.org");
+        Assert.Equal(SecretScrubber.UnreadableBodyText, s);
+    }
 }
